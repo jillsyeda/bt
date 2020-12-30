@@ -1,7 +1,26 @@
 {
-  "name": "bt",
+  "name": "electron-demo",
   "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-packager . Electron-chart --platform=win32 --out=build"
+  },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    
+    "echarts": "^3.6.1",
+    "electron": "^11.0.3",
+    "electron-packager": "^8.3.0",
+    "exceljs": "^0.2.39",
+    "node-xlsx": "^0.15.0",
+    "regression": "^1.4.0",
+    "xlsx": "^0.8.0",
+    "zrender": "^3.5.1",
+    "moment": "latest"
+  },
+  "devDependencies": {
+    "jquery": "^3.5.1"
   }
 }
