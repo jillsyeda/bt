@@ -8,8 +8,9 @@ function rand(max) {
 
 let o = {}
 let arr = []
-while (arr.length < 20) {
-  let n = rand(20) + 1
+let len = 30
+while (arr.length < len) {
+  let n = rand(len) + 1
   if (!o[n]) {
     o[n] = 1
     arr.push(n)
@@ -27,11 +28,13 @@ for (let number of arr) {
 }
 
 // 起始位置 画矩形
-let startX = 50
+let startX = 20
 let startY = 500
 let width = 20
-let padding = 35
+let padding = 25
 let maxH = 200
+let time = 200
+let frameCnt = 10
 
 function drawArr (ctx, curArr) {
   for (let i = 0; i < curArr.length; i++) {
@@ -54,7 +57,6 @@ function drawMatrix (ctx, x, y, w, h) {
 }
 
 let i = 0
-let frameCnt = 25
 // 动画
 function drawNode (ctx, fx, fy, fh, curArr, x, y) {
   if (i > frameCnt) {
@@ -75,7 +77,6 @@ function drawNode (ctx, fx, fy, fh, curArr, x, y) {
 }
 
 function run () {
-  let time = 500
   let cnt = 0
   let curArr = [...obj.data]
   let focus0, focusValue
