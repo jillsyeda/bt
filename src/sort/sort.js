@@ -28,3 +28,45 @@ module.exports.insertSort = function (arr, fn, detail) {
         dArr && dArr.push([2, j + 1, value]);
     }
 };
+
+/**
+ * 归并排序
+ * @param {[]}arr
+ * @param {function}fn
+ */
+function mergeSort(arr, fn) {
+    loop(arr, 0, arr.length - 1);
+
+    function loop(arr, p, r) {
+        if (p < r) {
+            let q = parseInt((p + r) / 2);
+            loop(arr, p, q);
+            loop(arr, q + 1, r);
+            merge(arr, p, q, r);
+        }
+    }
+
+    function merge(arr, k, q, r) {
+        // 2个数组合并排序
+        // [k,q],[q+1,r]
+        let left = [];
+        for (let j = k; j <= q; j++) {
+            left.push(arr[j]);
+        }
+        let right = [];
+        for (let j = q + 1; j <= r; j++) {
+            right.push(arr[j]);
+        }
+        let leftIndex = 0;
+        let rightIndex = 0;
+        let i = k;
+        while (i <= r) {
+            if (leftIndex >= q - k + 1 || (rightIndex < r - q && fn(left[leftIndex], right[rightIndex]))) {
+                arr[i] = right[rightIndex++];
+            } else if (rightIndex >= r - q || (leftIndex < q - k + 1 && !fn(left[leftIndex], right[rightIndex]))) {
+                arr[i] = left[leftIndex++];
+            }
+            i++;
+        }
+    }
+}
