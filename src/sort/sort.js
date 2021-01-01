@@ -33,8 +33,15 @@ module.exports.insertSort = function (arr, fn, detail) {
  * 归并排序
  * @param {[]}arr
  * @param {function}fn
+ * @param {{}}detail
  */
-function mergeSort(arr, fn) {
+module.exports.mergeSort = function (arr, fn, detail) {
+    let dArr;
+    if (detail) {
+        detail.data = [...arr];
+        detail.process = [];
+        dArr = detail.process;
+    }
     loop(arr, 0, arr.length - 1);
 
     function loop(arr, p, r) {
@@ -59,14 +66,16 @@ function mergeSort(arr, fn) {
         }
         let leftIndex = 0;
         let rightIndex = 0;
-        let i = k;
-        while (i <= r) {
+        for (let i = k; i <= r; i++) {
+            if (dArr) {
+                dArr.push([0, leftIndex + k, left[leftIndex], rightIndex + q + 1, right[rightIndex]]);
+            }
             if (leftIndex >= q - k + 1 || (rightIndex < r - q && fn(left[leftIndex], right[rightIndex]))) {
                 arr[i] = right[rightIndex++];
             } else if (rightIndex >= r - q || (leftIndex < q - k + 1 && !fn(left[leftIndex], right[rightIndex]))) {
                 arr[i] = left[leftIndex++];
             }
-            i++;
+            dArr && dArr.push([2, i, arr[i]]);
         }
     }
-}
+};
