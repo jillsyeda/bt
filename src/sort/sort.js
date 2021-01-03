@@ -92,3 +92,15 @@ module.exports.mergeSort = function (arr, fn, detail) {
         }
     }
 };
+
+/**
+ * 快速排序
+ * @param {[]}arr
+ * @param {function}fn
+ * @param {{}}detail
+ */
+function quickSort(arr, fn, detail) {
+
+
+
+}

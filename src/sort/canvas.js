@@ -6,9 +6,19 @@ function rand(max) {
     return Math.floor(Math.random() * max);
 }
 
+// 配置参数
+let len = 1000;
+// 起始位置 画矩形
+let startXs = [10, 10];
+let startYs = [740, 530];
+let width = 0;
+let padding = 1;
+let maxH = 200;
+let time = 1;
+let frameCnt = 50;
+
 let o = {};
 let arr = [];
-let len = 30;
 while (arr.length < len) {
     let n = rand(len) + 1;
     if (!o[n]) {
@@ -17,34 +27,90 @@ while (arr.length < len) {
     }
 }
 
-let obj = {};
-sort.insertSort(arr, (a, b) => {
-    return a > b
-}, obj);
-
-// 矩阵数字初始化
-let max = 0;
-for (let number of arr) {
-    if (number > max)
-        max = number
+let jobArr = [];
+for (let k in sort) {
+    let obj = {};
+    sort[k]([...arr], (a, b) => {
+        return a > b
+    }, obj);
+    jobArr.push(obj);
 }
 
-// 起始位置 画矩形
-let startX = 20;
-let startY = 500;
-let width = 20;
-let padding = 25;
-let maxH = 200;
-let time = 50;
-let frameCnt = 20;
+/**
+ * 批量显示多个任务
+ * @param {[]}jobs
+ */
+function batchRun(jobs) {
+    let cnts = [];
+    let curArrs = [];
+    let maxs = [];
+    let focus0s = [], focus1s = [], focus2s = [], focus3s = [];
+    for (let index = 0; index < jobs.length; index++) {
+        cnts.push(0);
+        curArrs.push([...jobs[index].data]);
+        for (let number of arr) {
+            if (!maxs[index] || number > maxs[index])
+                maxs[index] = number
+        }
+    }
+    let cnt = Math.pow(2, jobs.length) - 1;
+    let tmp = Math.pow(2, jobs.length) - 1;
+    for (let index = 0; ; index++) {
+        if (cnt <= 0) {
+            break;
+        }
+        for (let jobIndex = 0; jobIndex < jobs.length; jobIndex++) {
+            if (index >= jobs[jobIndex].process.length) {
+                cnt &= tmp - Math.pow(2, jobIndex);
+                continue;
+            }
+            let data = jobs[jobIndex].process[index];
+            let idx = data[1];
+            let value = data[2];
+            let x = startXs[jobIndex] + idx * padding;
+            let h = parseInt(value / maxs[jobIndex] * maxH);
+            let y = startYs[jobIndex] - h;
+            if (data[0] == 0) {
+                focus0s[jobIndex] = data[1];
+                focus1s[jobIndex] = data[2];
+                focus2s[jobIndex] = data[3];
+                focus3s[jobIndex] = data[4];
+            } else {
+                if (data[0] == 2) {
+                    curArrs[jobIndex][data[1]] = data[2]
+                }
+                let fx = startXs[jobIndex] + focus0s[jobIndex] * padding;
+                let fh = parseInt(focus1s[jobIndex] / maxs[jobIndex] * maxH);
+                let fx1 = startXs[jobIndex] + focus2s[jobIndex] * padding;
+                let fh1 = parseInt(focus3s[jobIndex] / maxs[jobIndex] * maxH);
+                setAction(
+                    ctx,
+                    [fx, startYs[jobIndex], fh, fx1, startYs[jobIndex], fh1],
+                    [...curArrs[jobIndex]],
+                    x,
+                    y,
+                    startXs[jobIndex],
+                    startYs[jobIndex],
+                    maxs[jobIndex],
+                    time,
+                    cnts[jobIndex]
+                );
+                ++cnts[jobIndex];
+            }
 
-function drawArr(ctx, curArr) {
-    for (let i = 0; i < curArr.length; i++) {
-        let x = startX + i * padding;
-        let y = startY;
-        let number = parseInt(curArr[i] / max * maxH);
-        ctx.strokeStyle = '#000000';
-        drawMatrix(ctx, x, y, width, number);
+            if (index === jobs[jobIndex].process.length - 1) {
+                // 最后去掉焦点图形
+                if (time) {
+                    setTimeout(() => {
+                        ctx.clearRect(0, startYs[jobIndex] - maxH - 1, canvas.width, maxH + 2);
+                        drawArr(ctx, curArrs[jobIndex], startXs[jobIndex], startYs[jobIndex], maxs[jobIndex]);
+                    }, time * cnts[jobIndex]);
+                } else {
+                    ctx.clearRect(0, startYs[jobIndex] - maxH - 1, canvas.width, maxH + 2);
+                    drawArr(ctx, curArrs[jobIndex], startXs[jobIndex], startYs[jobIndex], maxs[jobIndex]);
+                }
+            }
+        }
     }
 }
 
@@ -60,16 +126,33 @@ function drawMatrix(ctx, x, y, w, h) {
     ctx.stroke();
 }
 
-let i = 0;
+function drawArr(ctx, curArr, sx, sy, max) {
+    for (let i = 0; i < curArr.length; i++) {
+        let x = sx + i * padding;
+        let y = sy;
+        let number = parseInt(curArr[i] / max * maxH);
+        ctx.strokeStyle = '#000000';
+        drawMatrix(ctx, x, y, width, number);
+    }
+}
+
+function setAction(ctx, [fx, fy, fh, fx1, fy1, fh1], tmp, x, y, sx, sy, max, time, cnt) {
+    if (time) {
+        setTimeout(() => {
+            drawNode(ctx, [fx, fy, fh, fx1, fy1, fh1], tmp, x, y, sx, sy, max);
+        }, time * cnt);
+    } else {
+        drawNode(ctx, [fx, fy, fh, fx1, fy1, fh1], tmp, x, y, sx, sy, max)
+    }
+}
 
 // 动画
-function drawNode(ctx, [fx, fy, fh, fx1, fy1, fh1], curArr, x, y) {
+function drawNode(ctx, [fx, fy, fh, fx1, fy1, fh1], curArr, x, y, sx, sy, max, i = 0) {
     if (i > frameCnt) {
-        i = 0;
         return;
     }
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawArr(ctx, curArr);
+    ctx.clearRect(0, sy - maxH - 1, canvas.width, maxH + 2);
+    drawArr(ctx, curArr, sx, sy, max);
     if (Number.isNaN(fx) || Number.isNaN(fy)) {
         return;
     }
@@ -86,57 +169,10 @@ function drawNode(ctx, [fx, fy, fh, fx1, fy1, fh1], curArr, x, y) {
         drawMatrix(ctx, fx1, fy1 - fh1, w, 0);
         return;
     }
-    if (x1 < x) {
-        i = 0;
-    } else {
+    if (x1 > x) {
         i++;
-        window.requestAnimationFrame(drawNode.bind(this, ctx, [fx, fy, fh], curArr, x, y));
+        window.requestAnimationFrame(drawNode.bind(this, ctx, [fx, fy, fh], curArr, x, y, i));
     }
 }
 
-function run() {
-    let cnt = 0;
-    let curArr = [...obj.data];
-    let focus0, focus1, focus2, focus3;
-    for (let index = 0; index < obj.process.length; index++) {
-        let data = obj.process[index];
-        let idx = data[1];
-        let value = data[2];
-        let x = startX + idx * padding;
-        let h = parseInt(value / max * maxH);
-        let y = startY - h;
-        if (data[0] == 0) {
-            focus0 = data[1];
-            focus1 = data[2];
-            focus2 = data[3];
-            focus3 = data[4];
-        } else {
-            if (data[0] == 2) {
-                curArr[data[1]] = data[2]
-            }
-            let fx = startX + focus0 * padding;
-            let fh = parseInt(focus1 / max * maxH);
-            let fx1 = startX + focus2 * padding;
-            let fh1 = parseInt(focus3 / max * maxH);
-            setAction(ctx, [fx, fh, fx1, fh1], [...curArr], x, y, time, cnt);
-            if (data[0] == 1) {
-                focus0 = idx;
-            }
-            ++cnt;
-        }
-    }
-    // 最后去掉焦点图形
-    setTimeout(() => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawArr(ctx, curArr);
-    }, time * cnt);
-
-    function setAction(ctx, [fx, fh, fx1, fh1], tmp, x, y, time, cnt) {
-        setTimeout(() => {
-            drawNode(ctx, [fx, startY, fh, fx1, startY, fh1], tmp, x, y)
-        }, time * cnt)
-    }
-}
-
-run();
-
+batchRun(jobArr);
