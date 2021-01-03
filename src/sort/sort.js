@@ -13,10 +13,9 @@ module.exports.insertSort = function (arr, fn, detail) {
     }
     for (let i = 1; i < arr.length; i++) {
         let value = arr[i];
-        dArr && dArr.push([0, i, value]);
         let j = i - 1;
         for (; j >= 0; j--) {
-            dArr && dArr.push([1, j, arr[j]]);
+            dArr && dArr.push([0, i, value, j, arr[j]]);
             if (fn(arr[j], value)) {
                 arr[j + 1] = arr[j];
                 dArr && dArr.push([2, j + 1, arr[j]])
@@ -67,12 +66,26 @@ module.exports.mergeSort = function (arr, fn, detail) {
         let leftIndex = 0;
         let rightIndex = 0;
         for (let i = k; i <= r; i++) {
+            let leftElement = left[leftIndex];
+            let rightElement = right[rightIndex];
             if (dArr) {
-                dArr.push([0, leftIndex + k, left[leftIndex], rightIndex + q + 1, right[rightIndex]]);
+                let lTmpIndex = leftIndex + k,
+                    lTmpValue = leftElement,
+                    rTmpIndex = rightIndex + q + 1,
+                    rTmpValue = rightElement;
+                if (leftElement === undefined) {
+                    lTmpIndex--;
+                    lTmpValue = left[leftIndex - 1];
+                }
+                if (rightElement === undefined) {
+                    rTmpIndex--;
+                    rTmpValue = right[rightIndex - 1];
+                }
+                dArr.push([0, lTmpIndex, lTmpValue, rTmpIndex, rTmpValue]);
             }
-            if (leftIndex >= q - k + 1 || (rightIndex < r - q && fn(left[leftIndex], right[rightIndex]))) {
+            if (leftIndex >= q - k + 1 || (rightIndex < r - q && fn(leftElement, rightElement))) {
                 arr[i] = right[rightIndex++];
-            } else if (rightIndex >= r - q || (leftIndex < q - k + 1 && !fn(left[leftIndex], right[rightIndex]))) {
+            } else if (rightIndex >= r - q || (leftIndex < q - k + 1 && !fn(leftElement, rightElement))) {
                 arr[i] = left[leftIndex++];
             }
             dArr && dArr.push([2, i, arr[i]]);

@@ -18,7 +18,7 @@ while (arr.length < len) {
 }
 
 let obj = {};
-sort.mergeSort(arr, (a, b) => {
+sort.insertSort(arr, (a, b) => {
     return a > b
 }, obj);
 
@@ -35,7 +35,7 @@ let startY = 500;
 let width = 20;
 let padding = 25;
 let maxH = 200;
-let time = 1000;
+let time = 50;
 let frameCnt = 20;
 
 function drawArr(ctx, curArr) {
@@ -52,10 +52,11 @@ function drawArr(ctx, curArr) {
 function drawMatrix(ctx, x, y, w, h) {
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x + w, y);
-    ctx.lineTo(x + w, y - h);
-    ctx.lineTo(x, y - h);
-    ctx.lineTo(x, y);
+    w && ctx.lineTo(x + w, y);
+    let newVar = w && h;
+    newVar && ctx.lineTo(x + w, y - h);
+    h && ctx.lineTo(x, y - h);
+    newVar && ctx.lineTo(x, y);
     ctx.stroke();
 }
 
@@ -77,6 +78,12 @@ function drawNode(ctx, [fx, fy, fh, fx1, fy1, fh1], curArr, x, y) {
     drawMatrix(ctx, x1, fy, width, fh);
     if (fx1 || fh1) {
         drawMatrix(ctx, fx1, fy1, width, fh1);
+        // 横线比较
+        let w = fx - fx1;
+        if (w > 0) {
+            w += width;
+        }
+        drawMatrix(ctx, fx1, fy1 - fh1, w, 0);
         return;
     }
     if (x1 < x) {
