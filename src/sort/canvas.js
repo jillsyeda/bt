@@ -32,9 +32,12 @@ let jobArr = [];
 let ii = 0;
 for (let k in sort) {
     let obj = {data: [...arr], process: []};
+    let startTime = new Date().getTime();
     sort[k]([...arr], (a, b) => {
         return a > b
     }, obj.process);
+    let endTime = new Date().getTime();
+    console.log(`${k}时间：${endTime - startTime}`);
     jobArr.push(obj);
 
     startXs.push(margin);

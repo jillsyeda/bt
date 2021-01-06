@@ -86,7 +86,7 @@ function mergeSort(arr, fn, dArr) {
             dArr && dArr.push([2, i, arr[i]]);
         }
     }
-};
+}
 
 /**
  * 快速排序
