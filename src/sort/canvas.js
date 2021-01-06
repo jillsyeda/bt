@@ -8,14 +8,15 @@ function rand(max) {
 
 // 配置参数
 let len = 1000;
-// 起始位置 画矩形
-let startXs = [10, 10];
-let startYs = [740, 530];
 let width = 0;
 let padding = 1;
 let maxH = 200;
 let time = 1;
 let frameCnt = 50;
+let margin = 10;// 上下间隔
+// 起始位置 画矩形
+let startXs = [];
+let startYs = [];
 
 let o = {};
 let arr = [];
@@ -28,12 +29,16 @@ while (arr.length < len) {
 }
 
 let jobArr = [];
+let ii = 0;
 for (let k in sort) {
-    let obj = {};
+    let obj = {data: [...arr], process: []};
     sort[k]([...arr], (a, b) => {
         return a > b
-    }, obj);
+    }, obj.process);
     jobArr.push(obj);
+
+    startXs.push(margin);
+    startYs.push(canvas.height - (ii + 1) * margin - ii++ * maxH);
 }
 
 /**
