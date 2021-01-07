@@ -29,5 +29,3 @@ class Matrix {
         return c;
     }
 }
-
-console.log(new Matrix().squareMatrixMultiply([[1, 2, 3], [4, 5, 6]], [[1], [5], [10]]));
