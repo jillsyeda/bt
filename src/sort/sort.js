@@ -2,7 +2,8 @@ module.exports = {
     insertSort: insertSort,
     mergeSort: mergeSort,
     quickSort: quickSort,
-    heapSort: heapSort
+    heapSort: heapSort,
+    countingSort: countingSort,
 };
 
 /**
@@ -89,40 +90,6 @@ function mergeSort(arr, fn, dArr) {
 }
 
 /**
- * 快速排序
- * @param {[]}arr
- * @param {function}fn
- * @param {[]}dArr
- */
-function quickSort2(arr, fn, dArr) {
-    loop(arr, 0, arr.length - 1, 0);
-    function loop(arr, p, q, r) {
-        let leftIndex = p - 1;
-        let value = arr[r];
-        for (let i = p; i <= q; i++) {
-            dArr && dArr.push([0, r, value, i, arr[i]]);
-            if (fn(value, arr[i])) {
-                leftIndex++;
-                if (i !== leftIndex) {
-                    swap(arr, leftIndex, i);
-                    dArr && dArr.push([2, leftIndex, arr[leftIndex]]);
-                    dArr && dArr.push([2, i, arr[i]]);
-                }
-            }
-        }
-        if (leftIndex > p) {
-            loop(arr, p, leftIndex, p);
-        }
-        if (leftIndex === p - 1) {
-            leftIndex++;
-        }
-        if (leftIndex + 1 < q) {
-            loop(arr, leftIndex + 1, q, leftIndex + 1);
-        }
-    }
-}
-
-/**
  *
  * @param {[]}arr
  * @param {function}fn
@@ -154,15 +121,15 @@ function quickSort(arr, fn, dArr) {
             }
             if (low < high) {
                 swap(arr, low, high);
-                dArr.push([2, low, arr[low]]);
-                dArr.push([2, high, arr[high]]);
+                dArr && dArr.push([2, low, arr[low]]);
+                dArr && dArr.push([2, high, arr[high]]);
             }
         }
         if (arr[p] != arr[low]) {
             arr[p] = arr[low];
             arr[low] = base;
-            dArr.push([2, p, arr[p]]);
-            dArr.push([2, low, arr[low]]);
+            dArr && dArr.push([2, p, arr[p]]);
+            dArr && dArr.push([2, low, arr[low]]);
         }
 
         loop(arr, p, low - 1);
@@ -227,6 +194,85 @@ function heapSort(arr, fn, dArr) {
                 dArr && dArr.push([2, root, arr[root]]);
                 return max;
             }
+        }
+    }
+}
+
+function countingSort(arr, fn, dArr) {
+    let min;
+    for (let i = 0; i < arr.length; i++) {
+        if (!min || min > arr[i]) {
+            min = arr[i];
+        }
+    }
+    let c = [];
+    for (let i = 0; i < arr.length; i++) {
+        let index = arr[i] - min;
+        c[index] = (c[index] || 0) + 1;
+        dArr.push([2, index, c[index]]);
+    }
+    let j = 0;
+    for (let i = 0; i < c.length; i++) {
+        if (c[i]) {
+            for (let k = 0; k < c[i]; k++) {
+                arr[j] = i + min;
+                dArr.push([2, j, arr[j]]);
+                j++;
+            }
+        }
+    }
+}
+
+function bucketSort(arr, fn, dArr, bucketCount) {
+    let min, max;
+    for (let i = 0; i < arr.length; i++) {
+        if (!min || min > arr[i]) {
+            min = arr[i];
+        }
+        if (!max || max < arr[i]) {
+            max = arr[i];
+        }
+    }
+
+    let bucket = [];
+    for (let i = 0; i < arr.length; i++) {
+        let index = Math.floor((arr[i] - min) / bucketCount);
+        if (bucket[index] == null) {
+            bucket[index] = [];
+        }
+        bucket[index].push(arr[i]);
+    }
+
+    let index = 0;
+    for (let i = 0; i < bucket.length; i++) {
+        if (!bucket[i]) {
+            continue;
+        }
+        // 排序
+        quickSort(bucket[i], (m, n) => {
+            return m > n
+        }, null);
+        for (let j = 0; j < bucket[i].length; j++) {
+            arr[index++] = bucket[i][j];
+        }
+    }
+}
+
+function radixSort(arr) {
+
+}
+
+function selectionSort(arr){
+    let len = arr.length, min;
+    for (let i = 0; i < len; i++) {
+        min = i;
+        for (let j = i + 1; j < len; j++) {
+            if (arr[j] < arr[min]) {
+                min = j;
+            }
+        }
+        if (i != min) {
+            swap(arr, i, min);
         }
     }
 }

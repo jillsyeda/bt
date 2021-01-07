@@ -10,7 +10,7 @@ function rand(max) {
 let len = 1000;
 let width = 0;
 let padding = 1;
-let maxH = 200;
+let maxH = 150;
 let time = 1;
 let frameCnt = 50;
 let margin = 10;// 上下间隔
