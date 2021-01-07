@@ -126,48 +126,43 @@ class PolynomialParam {
     }
 
     add(a, b) {
-        if (this.check(a, b)) {
+        if (this._check(a, b)) {
             let molecule = a.molecule * b.denominator + b.molecule * a.denominator;
             let denominator = a.denominator * b.denominator;
-            [molecule, denominator] = this.commonDivisor(molecule, denominator);
+            [molecule, denominator] = this._commonDivisor(molecule, denominator);
             return new PolynomialParam(a.param, molecule, denominator);
         }
     }
 
     sub(a, b) {
-        if (this.check(a, b)) {
+        if (this._check(a, b)) {
             let molecule = a.molecule * b.denominator - b.molecule * a.denominator;
             let denominator = a.denominator * b.denominator;
-            [molecule, denominator] = this.commonDivisor(molecule, denominator);
+            [molecule, denominator] = this._commonDivisor(molecule, denominator);
             return new PolynomialParam(a.param, molecule, denominator);
         }
     }
 
     multi(a, b) {
-        if (this.check(a, b)) {
+        if (this._check(a, b)) {
             let molecule = a.molecule * b.molecule;
             let denominator = a.denominator * b.denominator;
-            [molecule, denominator] = this.commonDivisor(molecule, denominator);
+            [molecule, denominator] = this._commonDivisor(molecule, denominator);
             return new PolynomialParam(a.param, molecule, denominator);
         }
     }
 
-    div(a, b) {
-        if (this.check(a, b)) {
-            let molecule = a.molecule * b.molecule;
-            let denominator = a.denominator * b.denominator;
-            [molecule, denominator] = this.commonDivisor(molecule, denominator);
-            return new PolynomialParam(a.param, molecule, denominator);
-        }
-    }
-
-    check(a, b) {
-        let bCheck = a instanceof PolynomialParam && b instanceof PolynomialParam;
+    _check(a, b) {
+        let bCheck = this._checkType(a, b);
         bCheck = bCheck && ((!a.key && !b.key) || a.key === b.key);
         return bCheck;
     }
 
-    commonDivisor(a, b) {
+    _checkType(a, b) {
+        return a instanceof PolynomialParam && b instanceof PolynomialParam;
+    }
+
+    _commonDivisor(a, b) {
         let min = b, max = a;
         let isAMin = a < b;
         if (isAMin) {
