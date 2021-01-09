@@ -1,90 +1,89 @@
 // 多项式编程计算！！！
 // 诸如(a+b)(c+d)->a*c+a*d+b*c+b*d形式计算
 class Polynomial {
-    constructor(expressions) {
-
-        // 存储格式思考
-        // 比如 m=(a+b)(c+d)
-        let m = ["multi", ["add", "a", "b"], ["add", "c", "d"]];
-        // 必须要一个基础机构
-        // 计算["add", "a", "b"] 返回一个基础机构
-        // 这个机构可以进行+=*/运算,(a+b)*2=>2a+2b
-        // 如何计算m
-        this.calc(m);
+    constructor(expression) {
+        this.deserialize(expression);
     }
-    multiFn(a,b) {
-        let isANumber = typeof a == 'number';
-        let isAString = false, isAObject = false;
-        if (!isANumber) {
-            isAString = typeof a == 'string';
-            if (isAString) {
-                isAObject = typeof a == 'object';
+
+    get data() {
+        return this._data;
+    }
+
+    serialize() {
+
+    }
+
+    deserialize(exp) {
+        // (a+b)(c+d)=>  [multi,[add,a,b],[add,c,d]];
+        if (typeof exp == 'string') {
+            function loop(exp, data, left, right, x = 0, y = 0) {
+                if (left.length <= 0) {
+                    exp.length > 0 && data.push(x > 0 || y > 0 ? exp.substring(x, y) : exp);
+                    return;
+                }
+                if (left[0] >= 1) {
+                    data.push(exp.substring(x, left[0]));
+                }
+                let inner = [];
+                data.push(inner);
+                loop(exp, inner, left.slice(1), right.slice(0, right.length - 1), left[0] + 1, right[right.length - 1]);
             }
-        }
-        let isBNumber = typeof b == 'number';
-        let isBString = false, isBObject = false;
-        if (!isBNumber) {
-            isBString = typeof b == 'string';
-            if (isBString) {
-                isBObject = typeof b == 'object';
+
+            let i = -1;
+            let data = [];
+            // 先找括号
+            let left = [];
+            let right = [];
+            while (i++ < exp.length) {
+                if (exp[i] === '(') {
+                    if (right.length > 0) {
+                        loop(exp, data, left, right);
+                        let start = right[right.length - 1] + 1;
+                        exp = exp.substring(start, exp.length);
+                        left = [];
+                        right = [];
+                        if (exp.length <= 0) {
+                            break;
+                        }
+                        i = i-start;
+                    }
+                    left.push(i);
+                }else if (exp[i] === ')') {
+                    right.push(i);
+                }
             }
-        }
-        if (isANumber) {
-            if (isBNumber) {
-                return a * b
+            if (right.length > 0) {
+                loop(exp, data, left, right);
             }
-            if (isBObject) {
-                // 2(3+4)
-                return this.calc(a, b);
-            }
+            // this.deserializeDetail(data);
+            this._data = data;
         }
-        if (isAObject) {
-
-        }
-        return ["multi", a, b];
     }
-    addFn() {
-
-    }
-    subFn() {
-
-    }
-
-    calc(polynomial) {
-        if (typeof polynomial == 'object') {
-            return this[`${polynomial[0]}Fn`](polynomial[1], polynomial[2]);
-        }
-        return polynomial;
-    }
-
-
 
     /**
-     * 多项式转换
-     * @param {[]}exps
+     * 反虚拟化四则运算和PolynomialParameter对象
+     * 没有乘法运算符的处理函数
      */
-    transfer(exps) {
-        for (let exp of exps) {
-
+    deserializeDetail(data) {
+        for (let i = 0; i < data.length; i++) {
+            if (typeof data[i] != 'object') {
+                data[i] = this.deserializePolynomialParameter(data[i]);
+            } else {
+                // object
+                // 查看前一个和后一个的
+            }
         }
     }
 
+    deserializePolynomialParameter(exp) {
 
-    /**
-     * 多项式变换
-     */
-    transferLessMultiply(arr) {
-        // 统计元素个数
     }
-
-
-
 }
 
 /**
  * 多项式参数，分为两个部分，一个是整数或者自然数部分，一个为参数部分(多个),且只能乘积在一起
  */
-class PolynomialParam {
+class PolynomialParameter {
     constructor(param, molecule = 1, denominator = 1) {
         this._molecule = molecule;// 分子
         this._denominator = denominator;// 分母
@@ -130,7 +129,7 @@ class PolynomialParam {
             let molecule = a.molecule * b.denominator + b.molecule * a.denominator;
             let denominator = a.denominator * b.denominator;
             [molecule, denominator] = this._commonDivisor(molecule, denominator);
-            return new PolynomialParam(a.param, molecule, denominator);
+            return new PolynomialParameter(a.param, molecule, denominator);
         }
     }
 
@@ -139,7 +138,7 @@ class PolynomialParam {
             let molecule = a.molecule * b.denominator - b.molecule * a.denominator;
             let denominator = a.denominator * b.denominator;
             [molecule, denominator] = this._commonDivisor(molecule, denominator);
-            return new PolynomialParam(a.param, molecule, denominator);
+            return new PolynomialParameter(a.param, molecule, denominator);
         }
     }
 
@@ -148,7 +147,7 @@ class PolynomialParam {
             let molecule = a.molecule * b.molecule;
             let denominator = a.denominator * b.denominator;
             [molecule, denominator] = this._commonDivisor(molecule, denominator);
-            return new PolynomialParam(a.param, molecule, denominator);
+            return new PolynomialParameter(a.param, molecule, denominator);
         }
     }
 
@@ -159,7 +158,7 @@ class PolynomialParam {
     }
 
     _checkType(a, b) {
-        return a instanceof PolynomialParam && b instanceof PolynomialParam;
+        return a instanceof PolynomialParameter && b instanceof PolynomialParameter;
     }
 
     _commonDivisor(a, b) {
@@ -199,3 +198,7 @@ class PolynomialParam {
 
 
 // xing 18180986598
+
+
+let polynomial = new Polynomial("a(m+n)-(f-b)");
+console.log(polynomial.data);
