@@ -55,8 +55,7 @@ class Polynomial {
             if (right.length > 0) {
                 loop(exp, data, left, right);
             }
-            // this.deserializeDetail(data);
-            this._data = data;
+            this._data = this.deserializeDetail(data);
         }
     }
 
@@ -65,14 +64,31 @@ class Polynomial {
      * 没有乘法运算符的处理函数
      */
     deserializeDetail(data) {
+        if (!data || typeof data != 'object') {
+            return;
+        }
+        let arr = [];
         for (let i = 0; i < data.length; i++) {
-            if (typeof data[i] != 'object') {
-                data[i] = this.deserializePolynomialParameter(data[i]);
+            if (typeof data[i] == 'string') {
+                if (data[i].match(/[+\-*/]/)) {
+                    let index = 0;
+                    for (let j = 0; j < data[i].length; j++) {
+                        if (data[i][j].match(/[+\-*/]/)) {
+                            j > index && arr.push(data[i].substring(index, j));
+                            arr.push(data[i][j]);
+                            index = j + 1;
+                        }
+                    }
+                    index < data[i].length && arr.push(data[i].substring(index));
+                } else {
+                    arr.push(data[i]);
+                }
             } else {
-                // object
-                // 查看前一个和后一个的
+                let detail = this.deserializeDetail(data[i]);
+                detail && arr.push(detail);
             }
         }
+        return arr;
     }
 
     deserializePolynomialParameter(exp) {
@@ -196,9 +212,33 @@ class PolynomialParameter {
     }
 }
 
+class TreeNode {
+    constructor(root, left, right, prefix = '', suffix = '') {
+        this._root = root;
+        this._left = left;
+        this._right = right;
+        this._prefix = prefix;
+        this._suffix = suffix;
+    }
 
-// xing 18180986598
+    set left(node) {
+        this._left = node;
+    }
+
+    set right(node) {
+        this._right = node;
+    }
+
+    toString() {
+        let str = this._prefix;
+        str += this._left.toString();
+        str += this._root.toString();
+        str += this._right.toString();
+        str += this._suffix;
+        return str;
+    }
+}
 
 
-let polynomial = new Polynomial("a(m+n)-(f-b)");
+let polynomial = new Polynomial("(a+b+4c+d)(e+2f+3g+h)");
 console.log(polynomial.data);
