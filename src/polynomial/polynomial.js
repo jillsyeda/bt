@@ -1,5 +1,12 @@
 // 多项式编程计算！！！
 // 诸如(a+b)(c+d)->a*c+a*d+b*c+b*d形式计算
+let opSet = new Set();
+opSet.add('*');
+opSet.add('/');
+opSet.add('+');
+opSet.add('-');
+const regExp = /[+\-*/]/;
+
 class Polynomial {
     constructor(expression) {
         this.deserialize(expression);
@@ -9,12 +16,15 @@ class Polynomial {
         return this._data;
     }
 
+    get node() {
+        return this._node;
+    }
+
     serialize() {
 
     }
 
     deserialize(exp) {
-        // (a+b)(c+d)=>  [multi,[add,a,b],[add,c,d]];
         if (typeof exp == 'string') {
             function loop(exp, data, left, right, x = 0, y = 0) {
                 if (left.length <= 0) {
@@ -45,16 +55,17 @@ class Polynomial {
                         if (exp.length <= 0) {
                             break;
                         }
-                        i = i-start;
+                        i = i - start;
                     }
                     left.push(i);
-                }else if (exp[i] === ')') {
+                } else if (exp[i] === ')') {
                     right.push(i);
                 }
             }
             if (right.length > 0) {
                 loop(exp, data, left, right);
             }
+            this._node = this.loop(data);
             this._data = this.deserializeDetail(data);
         }
     }
@@ -70,10 +81,10 @@ class Polynomial {
         let arr = [];
         for (let i = 0; i < data.length; i++) {
             if (typeof data[i] == 'string') {
-                if (data[i].match(/[+\-*/]/)) {
+                if (data[i].match(regExp)) {
                     let index = 0;
                     for (let j = 0; j < data[i].length; j++) {
-                        if (data[i][j].match(/[+\-*/]/)) {
+                        if (data[i][j].match(regExp)) {
                             j > index && arr.push(data[i].substring(index, j));
                             arr.push(data[i][j]);
                             index = j + 1;
@@ -93,6 +104,88 @@ class Polynomial {
 
     deserializePolynomialParameter(exp) {
 
+    }
+
+    loop(data, clazz = TreeNode) {
+        let arr = [];
+        let nArr = [];
+        let tag = 0;
+        let lastIndex = 0;
+        for (let i = 0; i < data.length; i++) {
+            let detail = data[i];
+            if (typeof detail == 'object') {
+                arr[i] = this.loop(detail, clazz);
+                tag |= 4;
+            } else {
+                if (detail.match(regExp) && detail.length > 1) {
+                    arr[i] = this.analysis(detail, clazz);
+                    tag |= 2;
+                } else {
+                    arr[i] = detail;
+                    tag |= 1;
+                }
+            }
+
+            if (tag & 1) {
+                if (i === lastIndex + 2) {
+                    let node = arr[i - 1];  // 符号位
+                    node.left = nArr[i - 2] || arr[i - 2];
+                    node.right = arr[i];
+
+                    nArr[i] = node;
+                    lastIndex = i;
+                    tag = 4;
+                }
+            } else if (i === lastIndex + 1) {
+                let node = new clazz("*");
+                node.left = nArr[i - 1] || arr[i - 1];
+                node.right = arr[i];
+
+                nArr[i] = node;
+                lastIndex = i;
+                tag = 4;
+            }
+        }
+        return nArr[lastIndex] || arr[lastIndex];
+    }
+
+    /**
+     *
+     * @param exp 当前表达式
+     * @param clazz 树模型
+     */
+    analysis(exp, clazz = TreeNode) {
+        // 解析最简单的表达式 不包含括号
+        // step1 关键字解析 暂时省略
+        // step2 提取
+        let param = '';
+        let arr = [];
+        let curNodeIndex;
+        for (let i = 0; i < exp.length; i++) {
+            if (opSet.has(exp[i])) {
+                if (curNodeIndex == null) {
+                    let left = new clazz(param);
+                    param = '';
+                    arr[i] = new clazz(exp[i], left, null);
+                    curNodeIndex = i;
+                } else {
+                    arr[i] = new clazz(exp[i]);
+                    if (!arr[curNodeIndex].right && param !== '') {
+                        arr[curNodeIndex].right = new clazz(param);
+                        param = '';
+                    }
+                    arr[i].left = arr[curNodeIndex];
+                    curNodeIndex = i;
+                }
+
+            } else {
+                param += exp[i];
+            }
+        }
+        if (curNodeIndex != null && !arr[curNodeIndex].right && param !== '') {
+            arr[curNodeIndex].right = new clazz(param);
+        }
+        return arr[curNodeIndex];
     }
 }
 
