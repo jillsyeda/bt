@@ -8,8 +8,8 @@ opSet.add('-');
 const regExp = /[+\-*/]/;
 
 class Polynomial {
-    constructor(expression) {
-        this.deserialize(expression);
+    constructor(expression, nodeClazz = TreeNode) {
+        this.deserialize(expression, nodeClazz);
     }
 
     get data() {
@@ -21,52 +21,61 @@ class Polynomial {
     }
 
     serialize() {
-
+        return this.node.toString();
     }
 
-    deserialize(exp) {
+    deserialize(exp, nodeClazz) {
         if (typeof exp == 'string') {
-            function loop(exp, data, left, right, x = 0, y = 0) {
-                if (left.length <= 0) {
-                    exp.length > 0 && data.push(x > 0 || y > 0 ? exp.substring(x, y) : exp);
-                    return;
-                }
-                if (left[0] >= 1) {
-                    data.push(exp.substring(x, left[0]));
-                }
-                let inner = [];
-                data.push(inner);
-                loop(exp, inner, left.slice(1), right.slice(0, right.length - 1), left[0] + 1, right[right.length - 1]);
+            function bracketsHandle(exp, data, leftIndex, rightIndex) {
+                // 获取最近的括号并处理
+                data[rightIndex] = exp.substring(leftIndex + 1, rightIndex);
+                data[leftIndex] = {end: rightIndex};
             }
 
             let i = -1;
-            let data = [];
+            let dt = [];
             // 先找括号
-            let left = [];
-            let right = [];
+            let leftBrackets = [];
             while (i++ < exp.length) {
                 if (exp[i] === '(') {
-                    if (right.length > 0) {
-                        loop(exp, data, left, right);
-                        let start = right[right.length - 1] + 1;
-                        exp = exp.substring(start, exp.length);
-                        left = [];
-                        right = [];
-                        if (exp.length <= 0) {
-                            break;
-                        }
-                        i = i - start;
-                    }
-                    left.push(i);
+                    leftBrackets.push(i);
                 } else if (exp[i] === ')') {
-                    right.push(i);
+                    if (leftBrackets.length === 0) {
+                        throw new Error("表达式非法");
+                    }
+                    bracketsHandle(exp, dt, leftBrackets.pop(), i);
                 }
             }
-            if (right.length > 0) {
-                loop(exp, data, left, right);
+            if (leftBrackets.length > 0) {
+                throw new Error("表达式非法");
             }
-            this._node = this.genNode(data);
-            this._data = this.deserializeDetail(data);
+
+            function loop(exp, data, result, start, end) {
+                let lastStartIndex = start;
+                for (let j = start; j < end;) {
+                    let value = data[j];
+                    if (value && value.end) {
+                        j > lastStartIndex && result.push(exp.substring(lastStartIndex, j));
+                        let inner = [];
+                        result.push(inner);
+                        // 去掉括号,遍历括号内数据
+                        loop(exp, data, inner, j + 1, value.end - 1);
+                        j = value.end + 1;
+                        lastStartIndex = j;
+                    } else {
+                        j++;
+                    }
+                }
+                if (lastStartIndex === start) {
+                    result.push(exp.substring(lastStartIndex, end + 1));
+                }
+            }
+
+            let dd = [];
+            loop(exp, dt, dd, 0, exp.length);
+
+            this._node = this.genNode(dd, nodeClazz);
+            this._data = this.deserializeDetail(dd);
         }
     }
 
@@ -106,7 +115,7 @@ class Polynomial {
 
     }
 
-    genNode(data, clazz = TreeNode) {
+    genNode(data, clazz) {
         let arr = [];
         let nArr = [];
         let tag = 0;
@@ -118,11 +127,9 @@ class Polynomial {
                 arr[i].prefix = "(";
                 let node = arr[i].treeLoop('right');
                 node.suffix = ")";
-                tag |= 4;
             } else {
                 if (detail.match(regExp) && detail.length > 1) {
                     arr[i] = this.analysis(detail, clazz);
-                    tag |= 2;
                 } else {
                     arr[i] = detail;
                     tag |= 1;
@@ -137,7 +144,7 @@ class Polynomial {
 
                     nArr[i] = node;
                     lastIndex = i;
-                    tag = 4;
+                    tag = 0;
                 }
             } else if (i === lastIndex + 1) {
                 let node;
@@ -150,12 +157,12 @@ class Polynomial {
                     node = rightNode;
                     node.left = leftNode;
                 } else {
-                    node = new TreeNode('*', leftNode, rightNode);
+                    node = new clazz('*', leftNode, rightNode);
                 }
 
                 nArr[i] = node;
                 lastIndex = i;
-                tag = 4;
+                tag = 0;
             }
         }
         return nArr[lastIndex] || arr[lastIndex];
@@ -166,7 +173,7 @@ class Polynomial {
      * @param exp 当前表达式
      * @param clazz 树模型
      */
-    analysis(exp, clazz = TreeNode) {
+    analysis(exp, clazz) {
         // 解析最简单的表达式 不包含括号
         // step1 关键字解析 暂时省略
         // step2 提取
@@ -325,6 +332,11 @@ class TreeNode {
         this._right = right;
         this._prefix = prefix;
         this._suffix = suffix;
+        this._isDisplayMultiplyOperator = false;
+    }
+
+    set isDisplayMultiplyOperator(value) {
+        this._isDisplayMultiplyOperator = !!value;
     }
 
     set left(node) {
@@ -358,9 +370,12 @@ class TreeNode {
     toString() {
         let str = this._prefix;
         str += this._left && this._left.toString() || '';
-        str += this._root && this._root.toString() || '';
+        str += this._root &&  this._root.toString() || '';
         str += this._right && this._right.toString() || '';
         str += this._suffix;
+        if (!this._isDisplayMultiplyOperator) {
+            str = str.replace("*", "");
+        }
         return str;
     }
 
@@ -374,6 +389,6 @@ class TreeNode {
 }
 
 
-let polynomial = new Polynomial("(a+(c+b)(e+f))(a+d)");
+let polynomial = new Polynomial("(a-(c-(b-(e-(f+k)))))(e+f)");
 console.log(polynomial.data);
 console.log(polynomial.node.toString());
