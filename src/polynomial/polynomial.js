@@ -65,7 +65,7 @@ class Polynomial {
             if (right.length > 0) {
                 loop(exp, data, left, right);
             }
-            this._node = this.loop(data);
+            this._node = this.genNode(data);
             this._data = this.deserializeDetail(data);
         }
     }
@@ -106,7 +106,7 @@ class Polynomial {
 
     }
 
-    loop(data, clazz = TreeNode) {
+    genNode(data, clazz = TreeNode) {
         let arr = [];
         let nArr = [];
         let tag = 0;
@@ -114,7 +114,10 @@ class Polynomial {
         for (let i = 0; i < data.length; i++) {
             let detail = data[i];
             if (typeof detail == 'object') {
-                arr[i] = this.loop(detail, clazz);
+                arr[i] = this.genNode(detail, clazz);
+                arr[i].prefix = "(";
+                let node = arr[i].treeLoop('right');
+                node.suffix = ")";
                 tag |= 4;
             } else {
                 if (detail.match(regExp) && detail.length > 1) {
@@ -137,9 +140,18 @@ class Polynomial {
                     tag = 4;
                 }
             } else if (i === lastIndex + 1) {
-                let node = new clazz("*");
-                node.left = nArr[i - 1] || arr[i - 1];
-                node.right = arr[i];
+                let node;
+                let leftNode = nArr[i - 1] || arr[i - 1];
+                let rightNode = arr[i];
+                if (leftNode.isOperator && !leftNode.right) {
+                    node = leftNode;
+                    node.right = rightNode;
+                }else if (rightNode.isOperator && !rightNode.left) {
+                    node = rightNode;
+                    node.left = leftNode;
+                } else {
+                    node = new TreeNode('*', leftNode, rightNode);
+                }
 
                 nArr[i] = node;
                 lastIndex = i;
@@ -307,6 +319,7 @@ class PolynomialParameter {
 
 class TreeNode {
     constructor(root, left, right, prefix = '', suffix = '') {
+        this._isOperator = opSet.has(root);
         this._root = root;
         this._left = left;
         this._right = right;
@@ -322,16 +335,45 @@ class TreeNode {
         this._right = node;
     }
 
+    set prefix(prefix) {
+        this._prefix = prefix;
+    }
+
+    set suffix(suffix) {
+        this._suffix = suffix;
+    }
+
+    get isOperator() {
+        return this._isOperator;
+    }
+
+    get left() {
+        return this._left;
+    }
+
+    get right() {
+        return this._right;
+    }
+
     toString() {
         let str = this._prefix;
-        str += this._left.toString();
-        str += this._root.toString();
-        str += this._right.toString();
+        str += this._left && this._left.toString() || '';
+        str += this._root && this._root.toString() || '';
+        str += this._right && this._right.toString() || '';
         str += this._suffix;
         return str;
+    }
+
+    treeLoop(leftOrRight) {
+        if (this[leftOrRight]) {
+            return this.treeLoop(this[leftOrRight]);
+        } else {
+            return this;
+        }
     }
 }
 
 
-let polynomial = new Polynomial("(a+b+4c+d)(e+2f+3g+h)");
+let polynomial = new Polynomial("(a+(c+b)(e+f))(a+d)");
 console.log(polynomial.data);
+console.log(polynomial.node.toString());
