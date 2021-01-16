@@ -153,7 +153,7 @@ class Polynomial {
                 if (leftNode.isOperator && !leftNode.right) {
                     node = leftNode;
                     node.right = rightNode;
-                }else if (rightNode.isOperator && !rightNode.left) {
+                } else if (rightNode.isOperator && !rightNode.left) {
                     node = rightNode;
                     node.left = leftNode;
                 } else {
@@ -370,7 +370,7 @@ class TreeNode {
     toString() {
         let str = this._prefix;
         str += this._left && this._left.toString() || '';
-        str += this._root &&  this._root.toString() || '';
+        str += this._root && this._root.toString() || '';
         str += this._right && this._right.toString() || '';
         str += this._suffix;
         if (!this._isDisplayMultiplyOperator) {
@@ -388,7 +388,88 @@ class TreeNode {
     }
 }
 
+class PolynomialParse {
+    parse(exp, clazz = TreeNode) {
+        let arr = [];
+        let nodeArr = [];
+        for (let i = 0; i < exp.length; i++) {
+            let char = exp[i];
+            if (")" === char) {
+                let param = '';
+                let tmp = [];
+                let isFind = false;
+                while (arr.length > 0) {
+                    let pop = arr.pop();
+                    if ("(" === pop) {
+                        isFind = true;
+                        break;
+                    } else if (opSet.has(pop)) {
+                        if (param !== '') {
+                            tmp.push(param);
+                            param = '';
+                        }
+                        tmp.push(pop);
+                    } else {
+                        param = pop + param;
+                    }
+                }
+                if (param !== '') {
+                    tmp.push(param);
+                }
+                if (tmp.includes("(")) {
+                    throw new Error("左括号多了");
+                }
+                expParse(tmp, nodeArr);
+                if (!isFind) {
+                    throw new Error("右括号多了");
+                }
+            } else {
+                arr.push(char);
+            }
+        }
 
-let polynomial = new Polynomial("(a-(c-(b-(e-(f+k)))))(e+f)");
-console.log(polynomial.data);
-console.log(polynomial.node.toString());
+        function expParse(expArr, nArr) {
+            let pre, suf;
+            if (expArr.length > 0) {
+                while (expArr.length > 0) {
+                    let left = new clazz(expArr.pop());
+                    if (!pre) {
+                        pre = left.prefix = "(";
+                    }
+                    if (expArr.length < 1) {
+                        throw new Error("表达式错误");
+                    }
+                    let op = expArr.pop();
+                    let right;
+                    if (expArr.length > 0) {
+                        right = new clazz(expArr.pop());
+                    } else if (nArr.length > 0) {
+                        right = nArr.pop();
+                    }
+                    if (right) {
+                        suf = right;
+                    }
+                    let root = new clazz(op, left, right);
+                    nArr.push(root);
+                }
+            }
+            suf.suffix = ")";
+            if (nArr.length > 1) {
+                let right = nArr.pop();
+                right.suffix = ")";
+                let left = nArr.pop();
+                left.prefix = "(";
+                let root = new clazz("*", left, right);
+                nArr.push(root);
+            }
+        }
+
+        return nodeArr[0];
+    }
+}
+
+// let polynomial = new Polynomial("(a-(c-(b-(e-(f+k)))))(e+f)");
+// console.log(polynomial.data);
+// console.log(polynomial.node.toString());
+// let node = new PolynomialParse().parse("(a/(c/(b/(e/(f+k)))))(e+f)");
+// console.log(node.toString());
