@@ -1,8 +1,7 @@
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var blueimp_md5__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blueimp-md5 */ "./node_modules/blueimp-md5/js/md5.js");
-/* harmony import */ var blueimp_md5__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(blueimp_md5__WEBPACK_IMPORTED_MODULE_0__);
 
-/* harmony default export */ __webpack_exports__["default"] = (function (options) {
+/* harmony import */ var md5 = require(/*! blueimp-md5 */ "./md5.js");
+
+/* harmony default export */ module.exports = function (options) {
     options = options ? options : {};
     var result = {}; // Very simple now, need to make it more complex (geo shapes etc)
 
@@ -61,9 +60,7 @@ __webpack_require__.r(__webpack_exports__);
 
     if (canvas.toDataURL) {
         result.rawData = canvas.toDataURL();
-        result.hash = blueimp_md5__WEBPACK_IMPORTED_MODULE_0___default()(result.rawData);
+        result.hash = md5(result.rawData);
     }
-
     return result;
-});
-;
+};

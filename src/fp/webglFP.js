@@ -1,11 +1,8 @@
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var blueimp_md5__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blueimp-md5 */ "./node_modules/blueimp-md5/js/md5.js");
-/* harmony import */ var blueimp_md5__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(blueimp_md5__WEBPACK_IMPORTED_MODULE_0__);
+const md5 = require(/*! blueimp-md5 */ "./md5.js");
 
-
-var getWebglCanvas = function getWebglCanvas() {
-    var canvas = document.createElement('canvas');
-    var gl = null;
+let getWebglCanvas = function getWebglCanvas() {
+    let canvas = document.createElement('canvas');
+    let gl = null;
 
     try {
         gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -20,10 +17,10 @@ var getWebglCanvas = function getWebglCanvas() {
     return gl;
 };
 
-/* harmony default export */ __webpack_exports__["default"] = (function () {
-    var gl;
+module.exports = function () {
+    let gl;
 
-    var fa2s = function fa2s(fa) {
+    let fa2s = function fa2s(fa) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
@@ -31,11 +28,11 @@ var getWebglCanvas = function getWebglCanvas() {
         return '[' + fa[0] + ', ' + fa[1] + ']';
     };
 
-    var maxAnisotropy = function maxAnisotropy(gl) {
-        var ext = gl.getExtension('EXT_texture_filter_anisotropic') || gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic') || gl.getExtension('MOZ_EXT_texture_filter_anisotropic');
+    let maxAnisotropy = function maxAnisotropy(gl) {
+        let ext = gl.getExtension('EXT_texture_filter_anisotropic') || gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic') || gl.getExtension('MOZ_EXT_texture_filter_anisotropic');
 
         if (ext) {
-            var anisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+            let anisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
 
             if (anisotropy === 0) {
                 anisotropy = 2;
@@ -57,20 +54,20 @@ var getWebglCanvas = function getWebglCanvas() {
     // Since iOS supports webgl starting from version 8.1 and 8.1 runs on several graphics chips, the results may be different across ios devices, but we need to verify it.
 
 
-    var result = [];
-    var vShaderTemplate = 'attribute vec2 attrVertex;varying vec2 varyinTexCoordinate;uniform vec2 uniformOffset;void main(){varyinTexCoordinate=attrVertex+uniformOffset;gl_Position=vec4(attrVertex,0,1);}';
-    var fShaderTemplate = 'precision mediump float;varying vec2 varyinTexCoordinate;void main() {gl_FragColor=vec4(varyinTexCoordinate,0,1);}';
-    var vertexPosBuffer = gl.createBuffer();
+    let result = [];
+    let vShaderTemplate = 'attribute vec2 attrVertex;letying vec2 letyinTexCoordinate;uniform vec2 uniformOffset;void main(){letyinTexCoordinate=attrVertex+uniformOffset;gl_Position=vec4(attrVertex,0,1);}';
+    let fShaderTemplate = 'precision mediump float;letying vec2 letyinTexCoordinate;void main() {gl_FragColor=vec4(letyinTexCoordinate,0,1);}';
+    let vertexPosBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-    var vertices = new Float32Array([-0.2, -0.9, 0, 0.4, -0.26, 0, 0, 0.732134444, 0]);
+    let vertices = new Float32Array([-0.2, -0.9, 0, 0.4, -0.26, 0, 0, 0.732134444, 0]);
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
     vertexPosBuffer.itemSize = 3;
     vertexPosBuffer.numItems = 3;
-    var program = gl.createProgram();
-    var vshader = gl.createShader(gl.VERTEX_SHADER);
+    let program = gl.createProgram();
+    let vshader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vshader, vShaderTemplate);
     gl.compileShader(vshader);
-    var fshader = gl.createShader(gl.FRAGMENT_SHADER);
+    let fshader = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(fshader, fShaderTemplate);
     gl.compileShader(fshader);
     gl.attachShader(program, vshader);
@@ -91,7 +88,7 @@ var getWebglCanvas = function getWebglCanvas() {
     }
 
     return {
-        hash: blueimp_md5__WEBPACK_IMPORTED_MODULE_0___default()(result[0]),
+        hash: md5(result[0]),
         rawData: result[0]
     };
-});
+};

@@ -18,11 +18,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
 /* global define */
 (function (name, context, definition) {
     'use strict'
-    if (typeof window !== 'undefined' && "function" === 'function' && __webpack_require__(/*! !webpack amd options */ "./node_modules/webpack/buildin/amd-options.js")) { !(__WEBPACK_AMD_DEFINE_FACTORY__ = (definition),
-        __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
-            (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) :
-            __WEBPACK_AMD_DEFINE_FACTORY__),
-    __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) } else if ( true && module.exports) { module.exports = definition() } else if (context.exports) { context.exports = definition() } else { context[name] = definition() }
+    if (typeof window !== 'undefined' && require(/*! !webpack amd options */ "./amd-options.js")) {
+
+    } else if ( true && module.exports) {
+        module.exports = definition()
+    } else if (context.exports) {
+        context.exports = definition()
+    } else {
+        context[name] = definition()
+    }
 })('Fingerprint2', this, function () {
     'use strict'
 

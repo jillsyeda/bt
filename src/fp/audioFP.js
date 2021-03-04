@@ -1,10 +1,8 @@
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var blueimp_md5__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blueimp-md5 */ "./node_modules/blueimp-md5/js/md5.js");
-/* harmony import */ var blueimp_md5__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(blueimp_md5__WEBPACK_IMPORTED_MODULE_0__);
+const md5 = require(/*! blueimp-md5 */ "./md5.js");
 
-/* harmony default export */ __webpack_exports__["default"] = (function () {
+module.exports = (function () {
     return new Promise(function (done, reject) {
-        var options = {
+        let options = {
             audio: {
                 timeout: 1000,
                 // On iOS 11, audio context can only be used in response to user interaction.
@@ -13,24 +11,24 @@ __webpack_require__.r(__webpack_exports__);
                 excludeIOS11: true
             }
         };
-        var audioOptions = options.audio;
+        let audioOptions = options.audio;
 
         if (audioOptions.excludeIOS11 && navigator.userAgent.match(/OS 11.+Version\/11.+Safari/)) {
             // See comment for excludeUserAgent and https://stackoverflow.com/questions/46363048/onaudioprocess-not-called-on-ios11#46534088
             return done(options.EXCLUDED);
         }
 
-        var AudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        let AudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
 
         if (AudioContext == null) {
             return done(options.NOT_AVAILABLE);
         }
 
-        var context = new AudioContext(1, 44100, 44100);
-        var oscillator = context.createOscillator();
+        let context = new AudioContext(1, 44100, 44100);
+        let oscillator = context.createOscillator();
         oscillator.type = 'triangle';
         oscillator.frequency.setValueAtTime(10000, context.currentTime);
-        var compressor = context.createDynamicsCompressor();
+        let compressor = context.createDynamicsCompressor();
         [['threshold', -50], ['knee', 40], ['ratio', 12], ['reduction', -20], ['attack', 0], ['release', 0.25]].forEach(function (item) {
             if (compressor[item[0]] !== undefined && typeof compressor[item[0]].setValueAtTime === 'function') {
                 compressor[item[0]].setValueAtTime(item[1], context.currentTime);
@@ -40,7 +38,7 @@ __webpack_require__.r(__webpack_exports__);
         compressor.connect(context.destination);
         oscillator.start(0);
         context.startRendering();
-        var audioTimeoutId = setTimeout(function () {
+        let audioTimeoutId = setTimeout(function () {
             console.warn('Audio fingerprint timed out. Please report bug at https://github.com/Valve/fingerprintjs2 with your user agent: "' + navigator.userAgent + '".');
 
             context.oncomplete = function () {};
@@ -50,7 +48,7 @@ __webpack_require__.r(__webpack_exports__);
         }, audioOptions.timeout);
 
         context.oncomplete = function (event) {
-            var fingerprint;
+            let fingerprint;
 
             try {
                 clearTimeout(audioTimeoutId);
@@ -68,7 +66,7 @@ __webpack_require__.r(__webpack_exports__);
         };
     }).then(function (rawData) {
         return {
-            hash: blueimp_md5__WEBPACK_IMPORTED_MODULE_0___default()(rawData + ""),
+            hash: md5(rawData + ""),
             rawData: rawData
         };
     });
